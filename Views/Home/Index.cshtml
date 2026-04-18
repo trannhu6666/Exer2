@@ -1,0 +1,55 @@
+﻿@{
+    ViewBag.Title = "Sales Dashboard";
+}
+
+<div class="jumbotron" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px; border-radius: 15px; margin-top: 20px;">
+    <h1>Hệ Thống Quản Lý Bán Hàng</h1>
+    <p class="lead">Chào mừng bạn trở lại! Hôm nay bạn muốn thực hiện thao tác nào?</p>
+    <hr style="border-color: rgba(255,255,255,0.2)" />
+    <a href="@Url.Action("Create", "Order")" class="btn btn-warning btn-lg" style="font-weight: bold;">
+        <i class="glyphicon glyphicon-plus"></i> TẠO ĐƠN HÀNG MỚI
+    </a>
+</div>
+
+<div class="row text-center">
+    <div class="col-md-4">
+        <div style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: #fff; transition: 0.3s;" onmouseover="this.style.boxShadow='0 5px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="glyphicon glyphicon-tag" style="font-size: 40px; color: #007bff;"></i>
+            <h3>Kho Hàng</h3>
+            <p>Quản lý 15+ mặt hàng đang kinh doanh, cập nhật giá và tồn kho.</p>
+            <a class="btn btn-default" href="@Url.Action("Index", "Items")">Xem kho &raquo;</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: #fff; transition: 0.3s;" onmouseover="this.style.boxShadow='0 5px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="glyphicon glyphicon-briefcase" style="font-size: 40px; color: #28a745;"></i>
+            <h3>Đại Lý</h3>
+            <p>Thông tin chi tiết 15 đại lý phân phối trên toàn quốc.</p>
+            <a class="btn btn-default" href="@Url.Action("Index", "Agents")">Danh sách &raquo;</a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background: #fff; transition: 0.3s;" onmouseover="this.style.boxShadow='0 5px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+            <i class="glyphicon glyphicon-signal" style="font-size: 40px; color: #ffc107;"></i>
+            <h3>Báo Cáo</h3>
+            <p>Phân tích mặt hàng bán chạy và doanh thu theo từng đại lý.</p>
+            <a class="btn btn-default" href="@Url.Action("Index", "Filter")">Xem báo cáo &raquo;</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Chỉnh một chút để các dòng menu nhìn thoáng hơn */
+    .nav-link {
+        padding: 15px 20px !important;
+        font-weight: 500;
+        color: #ddd !important;
+    }
+
+        .nav-link:hover {
+            color: #fff !important;
+            background: rgba(255,255,255,0.1);
+        }
+</style>

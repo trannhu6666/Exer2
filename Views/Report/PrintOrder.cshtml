@@ -1,0 +1,101 @@
+﻿@model WebAppMVC.Models.Order
+
+@{
+    Layout = null; // Tắt layout chung
+    decimal grandTotal = 0; // Biến tính tổng tiền
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Print Order #@Model.OrderID</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            background-color: #f4f6f9;
+            padding: 20px;
+        }
+
+        .invoice-box {
+            background: white;
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+        /* Cái class này giúp giấu cái nút đi khi máy in chạy */
+        @@media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .invoice-box {
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="invoice-box">
+        <div class="text-right no-print" style="margin-bottom: 20px;">
+            <a href="/Order/Create" class="btn btn-default">Back to Order</a>
+            <button onclick="window.print()" class="btn btn-primary btn-lg">🖨️ Print Invoice</button>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-6">
+                <h2 style="color: #2c3e50; font-weight: bold;">INVOICE</h2>
+                <h4>Order ID: #@Model.OrderID</h4>
+            </div>
+            <div class="col-xs-6 text-right">
+                <p><strong>Date:</strong> @Model.OrderDate.Value.ToString("dd/MM/yyyy")</p>
+                <p><strong>Agent:</strong> @Model.Agent.AgentName</p>
+            </div>
+        </div>
+        <hr />
+
+        <table class="table table-bordered">
+            <thead>
+                <tr class="active">
+                    <th>No.</th>
+                    <th>Item Name</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int stt = 1; }
+                @foreach (var detail in Model.OrderDetails)
+                {
+                    decimal lineTotal = (decimal)(detail.Quantity * detail.UnitAmount);
+                    grandTotal += lineTotal;
+
+                    <tr>
+                        <td>@(stt++)</td>
+                        <td>@detail.Item.ItemName</td>
+                        <td class="text-center">@detail.Quantity</td>
+                        <td class="text-right">@string.Format("{0:N0}", detail.UnitAmount)</td>
+                        <td class="text-right">@string.Format("{0:N0}", lineTotal)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-right" style="font-size: 18px;">GRAND TOTAL:</th>
+                    <th class="text-right" style="font-size: 18px; color: red;">@string.Format("{0:N0}", grandTotal)</th>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div class="text-center" style="margin-top: 50px;">
+            <p><i>Thank you for your business!</i></p>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,99 @@
+﻿@model IEnumerable<WebAppMVC.Controllers.OrderController.CartItem>
+
+<h2>Create New Order</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+    <a href="/Report/PrintOrder" class="btn btn-warning">Print This Order</a>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row">
+    <div class="col-md-5">
+
+        <div class="panel panel-primary">
+            <div class="panel-heading">Order Info</div>
+            <div class="panel-body">
+                <form id="formSaveOrder" action="/Order/SaveOrder" method="post">
+                    <div class="form-group">
+                        <label>Agent</label>
+                        @Html.DropDownList("AgentID", null, htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group">
+                        <label>Order Date</label>
+                        <input type="date" name="OrderDate" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required />
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel panel-info" style="margin-top: 20px;">
+            <div class="panel-heading">Add Items</div>
+            <div class="panel-body">
+                <form action="/Order/AddToCart" method="post">
+                    <div class="form-group">
+                        <label>Item</label>
+                        @Html.DropDownList("ItemID", null, htmlAttributes: new { @class = "form-control" })
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" name="Quantity" class="form-control" value="1" min="1" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Unit Price</label>
+                        <input type="number" name="UnitPrice" class="form-control" required />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Add to Cart</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <h4>Shopping Cart</h4>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr class="bg-primary" style="color: white;">
+                    <th>Item Name</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ItemName</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.UnitPrice.ToString("N0")</td>
+                            <td>@item.Total.ToString("N0")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Cart is empty</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="text-right" style="margin-top: 15px;">
+                <button type="submit" form="formSaveOrder" class="btn btn-success btn-lg">✔ SAVE ORDER</button>
+            </div>
+        }
+
+    </div>
+</div>

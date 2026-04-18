@@ -1,0 +1,53 @@
+﻿@model IEnumerable<WebAppMVC.Controllers.FilterController.ReportViewModel>
+
+<h2>Filter & Statistics</h2>
+
+<div class="row well" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+    <form action="/Filter/Index" method="post" class="form-inline" style="display: flex; gap: 20px; align-items: center;">
+
+        <button type="submit" name="actionType" value="BestSelling" class="btn btn-warning">
+            Show Best Selling
+        </button>
+
+        <div class="form-group">
+            @Html.DropDownList("AgentID", null, "-- Select Agent --", new { @class = "form-control" })
+            <button type="submit" name="actionType" value="ByAgent" class="btn btn-info">Filter By Agent</button>
+        </div>
+
+        <div class="form-group">
+            @Html.DropDownList("ItemID", null, "-- Select Item --", new { @class = "form-control" })
+            <button type="submit" name="actionType" value="ByItem" class="btn btn-success">Filter By Item</button>
+        </div>
+
+    </form>
+</div>
+
+<hr />
+
+@if (Model != null && Model.Any())
+{
+    <h3 class="text-primary">@ViewBag.ReportTitle</h3>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr class="bg-primary text-white">
+                <th>Date</th>
+                <th>Name (Item / Agent)</th>
+                <th>Total Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(item.Date.HasValue ? item.Date.Value.ToString("dd/MM/yyyy") : "-")</td>
+                    <td>@item.Name</td>
+                    <td>@item.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (Model != null)
+{
+    <div class="alert alert-warning">No data found for this selection!</div>
+}
