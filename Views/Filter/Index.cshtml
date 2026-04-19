@@ -1,53 +1,100 @@
-﻿@model IEnumerable<WebAppMVC.Controllers.FilterController.ReportViewModel>
-
-<h2>Filter & Statistics</h2>
-
-<div class="row well" style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
-    <form action="/Filter/Index" method="post" class="form-inline" style="display: flex; gap: 20px; align-items: center;">
-
-        <button type="submit" name="actionType" value="BestSelling" class="btn btn-warning">
-            Show Best Selling
-        </button>
-
-        <div class="form-group">
-            @Html.DropDownList("AgentID", null, "-- Select Agent --", new { @class = "form-control" })
-            <button type="submit" name="actionType" value="ByAgent" class="btn btn-info">Filter By Agent</button>
+﻿@model IEnumerable<WebAppMVC.Models.OrderDetail>
+@{
+    ViewBag.Title = "Báo Cáo Kinh Doanh";
+    // Layout đã được set tự động trong _ViewStart.cshtml
+}
+@if (ViewBag.BestItems != null)
+{
+    var bestItems = (Dictionary<string, int>)ViewBag.BestItems;
+    if (bestItems.Any())
+    {
+        <div class="alert alert-success shadow-sm mt-4 border-0" style="background-color: #d4edda;">
+            <h4 class="alert-heading fw-bold text-success mb-3">
+                🏆 Top Mặt Hàng Bán Chạy Nhất
+            </h4>
+            <div class="row">
+                @foreach (var item in bestItems)
+                {
+                    <div class="col-md-4 mb-2">
+                        <div class="p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm text-center" style="transition: transform 0.2s;">
+                            <span class="fs-5 fw-bold text-dark">@item.Key</span>
+                            <br />
+                            <span class="badge bg-danger fs-6 mt-2 px-3 py-2 rounded-pill shadow-sm">
+                                🔥 Đã bán: @item.Value
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
-
-        <div class="form-group">
-            @Html.DropDownList("ItemID", null, "-- Select Item --", new { @class = "form-control" })
-            <button type="submit" name="actionType" value="ByItem" class="btn btn-success">Filter By Item</button>
-        </div>
-
-    </form>
+    }
+}
+<div class="card shadow-sm mt-4">
+    <div class="card-header bg-info text-white">
+        <h3 class="mb-0">📊 Bộ Lọc Báo Cáo</h3>
+    </div>
+    <div class="card-body bg-light">
+        <form method="get" action="@Url.Action("Index", "Filter")">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="fw-bold mb-2">Lọc theo Đại Lý</label>
+                    @Html.DropDownList("searchAgentId", null, "-- Tất cả đại lý --", new { @class = "form-select" })
+                </div>
+                <div class="col-md-4">
+                    <label class="fw-bold mb-2">Lọc theo Mặt Hàng</label>
+                    @Html.DropDownList("searchItemId", null, "-- Tất cả mặt hàng --", new { @class = "form-select" })
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+                        Xem Báo Cáo
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<hr />
-
-@if (Model != null && Model.Any())
-{
-    <h3 class="text-primary">@ViewBag.ReportTitle</h3>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr class="bg-primary text-white">
-                <th>Date</th>
-                <th>Name (Item / Agent)</th>
-                <th>Total Quantity</th>
+<div class="table-responsive mt-4">
+    <table class="table table-bordered table-striped table-hover shadow-sm">
+        <thead class="table-dark">
+            <tr class="text-center">
+                <th>Mã Đơn</th>
+                <th>Ngày Đặt</th>
+                <th>Tên Đại Lý</th>
+                <th>Sản Phẩm</th>
+                <th>Số Lượng</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model)
+            @if (Model != null && Model.Any())
+            {
+                int totalQuantity = 0;
+                foreach (var item in Model)
+                {
+                    // Cộng dồn tổng số lượng
+                    totalQuantity += item.Quantity ?? 0;
+
+                    <tr class="text-center align-middle">
+                        <td><strong>#@item.OrderID</strong></td>
+                        <td>@(item.Order?.OrderDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                        <td class="text-start">@(item.Order?.Agent?.AgentName ?? "N/A")</td>
+                        <td class="text-start">@(item.Item?.ItemName ?? "N/A")</td>
+                        <td><span class="badge bg-success fs-6 px-3 py-2">@item.Quantity</span></td>
+                    </tr>
+                }
+                <tr class="table-warning fw-bold text-center">
+                    <td colspan="4" class="text-end fs-5">TỔNG CỘNG MẶT HÀNG:</td>
+                    <td style="font-size: 20px; color: red;">@totalQuantity</td>
+                </tr>
+            }
+            else
             {
                 <tr>
-                    <td>@(item.Date.HasValue ? item.Date.Value.ToString("dd/MM/yyyy") : "-")</td>
-                    <td>@item.Name</td>
-                    <td>@item.Quantity</td>
+                    <td colspan="5" class="text-center text-danger fw-bold py-5 fs-5">
+                        Không tìm thấy dữ liệu phù hợp với bộ lọc!
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
-}
-else if (Model != null)
-{
-    <div class="alert alert-warning">No data found for this selection!</div>
-}
+</div>

@@ -1,87 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Data.Entity; // Rất quan trọng để dùng được hàm .Include()
 using System.Linq;
 using System.Web.Mvc;
-using WebAppMVC.Models; // Đổi lại thành namespace Models của bạn nhé
+using WebAppMVC.Models; // Nhớ đổi tên chỗ này
 
 namespace WebAppMVC.Controllers
 {
     public class FilterController : Controller
     {
+        // Khởi tạo kết nối Database (Đổi tên cho đúng với file .edmx của bạn)
         private SaleManagementDBEntities db = new SaleManagementDBEntities();
 
-        // Class phụ để chứa dữ liệu in ra bảng HTML
-        public class ReportViewModel
+        // Biến tham số nhận vào từ URL khi người dùng bấm nút Lọc
+        public ActionResult Index(int? searchAgentId, int? searchItemId)
         {
-            public DateTime? Date { get; set; }
-            public string Name { get; set; }
+            // 1. Gửi dữ liệu đổ vào 2 cái Dropdown List (có giữ lại giá trị vừa chọn)
+            ViewBag.searchAgentId = new SelectList(db.Agents, "AgentID", "AgentName", searchAgentId);
+            ViewBag.searchItemId = new SelectList(db.Items, "ItemID", "ItemName", searchItemId);
 
-            // ĐÃ THÊM DẤU CHẤM HỎI VÀO ĐÂY GIÚP BẠN:
-            public int? Quantity { get; set; }
-        }
+            var bestItemsDict = db.OrderDetails
+                .Where(od => od.Item != null && od.Quantity != null) // Bỏ qua dữ liệu rỗng
+                .GroupBy(od => od.Item.ItemName)                     // Nhóm theo tên mặt hàng
+                .ToDictionary(
+                    g => g.Key,                                      // Tên mặt hàng
+                    g => g.Sum(od => od.Quantity ?? 0)               // Tổng số lượng bán ra
+                )
+                .OrderByDescending(kvp => kvp.Value)                 // Sắp xếp giảm dần theo số lượng
+                .Take(3)                                             // Lấy Top 3
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        // 1. Hàm Load trang đầu tiên (Chỉ hiện Dropdown, chưa có bảng)
-        [HttpGet]
-        public ActionResult Index()
-        {
-            ViewBag.AgentID = new SelectList(db.Agents, "AgentID", "AgentName");
-            ViewBag.ItemID = new SelectList(db.Items, "ItemID", "ItemName");
-            return View();
-        }
+            // Đóng gói gửi sang View
+            ViewBag.BestItems = bestItemsDict;
+            // 2. Viết câu Query gốc, dùng Include để nối các bảng lại với nhau
+            var query = db.OrderDetails
+                          .Include(od => od.Order)
+                          .Include(od => od.Order.Agent)
+                          .Include(od => od.Item)
+                          .AsQueryable();
 
-        // 2. Hàm xử lý khi người dùng bấm các nút Lọc
-        [HttpPost]
-        public ActionResult Index(string actionType, int? AgentID, int? ItemID)
-        {
-            // Nạp lại dữ liệu cho 2 cái Dropdown để nó không bị biến mất
-            ViewBag.AgentID = new SelectList(db.Agents, "AgentID", "AgentName");
-            ViewBag.ItemID = new SelectList(db.Items, "ItemID", "ItemName");
-
-            List<ReportViewModel> result = new List<ReportViewModel>();
-
-            // Lọc 1: Mặt hàng bán chạy nhất
-            if (actionType == "BestSelling")
+            // 3. Nếu có chọn Đại lý thì lọc theo Đại lý
+            if (searchAgentId.HasValue)
             {
-                ViewBag.ReportTitle = "Best Selling Items";
-                result = (from od in db.OrderDetails
-                          group od by od.Item.ItemName into g
-                          select new ReportViewModel
-                          {
-                              Name = g.Key,
-                              Quantity = g.Sum(x => x.Quantity)
-                          }).OrderByDescending(x => x.Quantity).ToList();
-            }
-            // Lọc 2: Món hàng được mua bởi 1 Đại lý cụ thể
-            else if (actionType == "ByAgent" && AgentID.HasValue)
-            {
-                ViewBag.ReportTitle = "Items Purchased By Selected Agent";
-                result = (from o in db.Orders
-                          join od in db.OrderDetails on o.OrderID equals od.OrderID
-                          where o.AgentID == AgentID.Value
-                          select new ReportViewModel
-                          {
-                              Date = o.OrderDate,
-                              Name = od.Item.ItemName, // Hiện tên món
-                              Quantity = od.Quantity
-                          }).ToList();
-            }
-            // Lọc 3: Khách hàng đã mua 1 món cụ thể
-            else if (actionType == "ByItem" && ItemID.HasValue)
-            {
-                ViewBag.ReportTitle = "Agents Who Purchased Selected Item";
-                result = (from o in db.Orders
-                          join od in db.OrderDetails on o.OrderID equals od.OrderID
-                          where od.ItemID == ItemID.Value
-                          select new ReportViewModel
-                          {
-                              Date = o.OrderDate,
-                              Name = o.Agent.AgentName, // Hiện tên khách
-                              Quantity = od.Quantity
-                          }).ToList();
+                query = query.Where(od => od.Order.AgentID == searchAgentId.Value);
             }
 
-            // Trả kết quả ra màn hình
-            return View(result);
+            // 4. Nếu có chọn Sản phẩm thì lọc theo Sản phẩm
+            if (searchItemId.HasValue)
+            {
+                query = query.Where(od => od.ItemID == searchItemId.Value);
+            }
+
+            // 5. Thực thi câu lệnh, sắp xếp ngày mới nhất lên đầu và ném sang View
+            var results = query.OrderByDescending(od => od.Order.OrderDate).ToList();
+
+            return View(results);
         }
     }
 }
