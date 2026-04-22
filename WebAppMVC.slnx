@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="../SaleManagement/SaleManagement.csproj" Id="03f75aed-56fd-43b6-9e07-5dcebb422473" />
   <Project Path="WebAppMVC.csproj" Id="e8380631-c6c1-4e70-a88e-5201a9fc6bfc" />
 </Solution>
